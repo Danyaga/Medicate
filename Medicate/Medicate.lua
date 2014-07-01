@@ -17,6 +17,8 @@ local batteryStyle = "_matte"
 local posX = 0
 local posY = 0
 
+local manaRegen_Timer
+
 local myUserSettings = 
 {
 	--General Settings
@@ -52,6 +54,9 @@ function Medicate:OnLoad()
 	if GameLib.GetPlayerUnit() then
 		self:OnCharacterCreated()
 	end
+	
+	-- Creating Mana timer
+	self.manaRegen_Timer=tTimer = ApolloTimer.Create(1, false, "saveManaRegenValue", self)
 	
 	-- Default Settings
 	self.restored = false;
@@ -183,7 +188,7 @@ function Medicate:OnFrame()
 	end
 
 	local strMana = String_GetWeaselString(Apollo.GetString("Medic_FocusTooltip"), nManaCurrent, nManaMax)
-	self.wndMain:FindChild("ManaProgressBar"):SetTooltip(string.format("<T Font=\"CRB_InterfaceSmall\">%s</T>", strMana))
+	self.wndMain:FindChild("ManaProgressBar"):SetTooltip(string.format("<T Font=\"CRB_InterfaceSmall\">%s - %s f/s</T>", strMana, self.manaRegenPerSec))
 end
 
 -- Show/Hide the correct styles
@@ -426,6 +431,18 @@ end
 
 function Medicate:Button_Lock( wndHandler, wndControl, eMouseButton )
 	self.setLock = wndControl:IsChecked(); self:SettingsChanged();
+end
+
+
+function MyAddon:OnTimer()
+	local nManaCurrent = unitPlayer:GetMana()
+	local nManaMax = unitPlayer:GetMaxMana()
+	
+	if(nManaCurrent<nManaMax)
+		self.manaRegenPerSec=nManaCurrent-self.lastManaValueRead
+		self.lastManaValueRead=nManaCurrent
+	else
+		self.manaRegenPerSec=0
 end
 
 -----------------------------------------------------------------------------------------------
